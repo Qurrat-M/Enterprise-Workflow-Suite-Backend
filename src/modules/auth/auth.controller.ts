@@ -27,17 +27,22 @@ export class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        maxAge: 24 * 60 * 60 * 1000,
       })
-      .status(200)
-      .json(new ApiResponse(true, "Login successful", { user }));
+      .status(HTTP_STATUS.OK)
+      .json(
+        new ApiResponse(true, "Login successful", {
+          user,
+          accessToken,
+        }),
+      );
   });
 
   me = asyncHandler(async (req, res) => {
     const user = await authService.getProfile(req.user!.id);
 
     res
-      .status(200)
+      .status(HTTP_STATUS.OK)
       .json(new ApiResponse(true, "User fetched successfully", user));
   });
 

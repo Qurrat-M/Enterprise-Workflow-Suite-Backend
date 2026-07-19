@@ -8,6 +8,7 @@ import { notFound } from "./middleware/notFound";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./docs";
 import cookieParser from "cookie-parser";
+import roleRoutes from "./modules/roles/role.routes";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/v1", routes);
+app.use("/api/v1/roles", roleRoutes);
 
 app.use(notFound);
 
