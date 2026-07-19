@@ -1,4 +1,6 @@
 import { db } from "../../config/db";
+import { getPagination } from "../../utils/pagination/getPagination";
+import { RoleQuery } from "./role.types";
 
 class RoleRepository {
   async createRole(name: string, description?: string) {
@@ -74,6 +76,61 @@ class RoleRepository {
     );
 
     return rows[0];
+  }
+
+  async findAll(query: RoleQuery) {
+    const { page, limit, offset, search, sort, order } = getPagination(query);
+
+    // Allow sorting only on these columns
+    const allowedSortColumns = ["name", "created_at", "updated_at"];
+
+    const sortColumn = allowedSortColumns.includes(sort) ? sort : "created_at";
+
+    // Total count
+    const countResult = await db.query(
+      `
+      SELECT COUNT(*) AS total
+      FROM roles
+      WHERE
+        is_active = true
+        AND (
+          LOWER(name) LIKE LOWER($1)
+          OR LOWER(COALESCE(description,'')) LIKE LOWER($1)
+        );
+    `,
+      [`%${search}%`],
+    );
+
+    const totalRecords = Number(countResult.rows[0].total);
+
+    // Data query
+    const result = await db.query(
+      `
+      SELECT *
+      FROM roles
+      WHERE
+        is_active = true
+        AND (
+          LOWER(name) LIKE LOWER($1)
+          OR LOWER(COALESCE(description,'')) LIKE LOWER($1)
+        )
+      ORDER BY ${sortColumn} ${order}
+      LIMIT $2
+      OFFSET $3;
+    `,
+      [`%${search}%`, limit, offset],
+    );
+
+    return {
+      items: result.rows,
+
+      pagination: {
+        page,
+        limit,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / limit),
+      },
+    };
   }
 
   async deleteRole(id: string) {

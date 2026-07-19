@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { roleService } from "./role.service";
 import { HTTP_STATUS } from "../../constants";
 import { ApiResponse } from "../../utils/ApiResponse";
+import { RoleQuery } from "./role.types";
 
 class RoleController {
   async createRole(
@@ -29,7 +30,7 @@ class RoleController {
 
   async getRoles(req: Request, res: Response, next: NextFunction) {
     try {
-      const roles = await roleService.getRoles();
+      const roles = await roleService.getRoles(req.query as RoleQuery);
 
       res
         .status(HTTP_STATUS.OK)

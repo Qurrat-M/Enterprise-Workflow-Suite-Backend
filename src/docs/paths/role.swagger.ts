@@ -13,6 +13,47 @@
  *     tags: [Roles]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of records per page
+ *
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by role name or description
+ *
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - name
+ *             - created_at
+ *             - updated_at
+ *         description: Sort field
+ *
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - asc
+ *             - desc
+ *           default: desc
+ *         description: Sort order
+ *
  *     responses:
  *       200:
  *         description: Roles fetched successfully

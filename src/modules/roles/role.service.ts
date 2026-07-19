@@ -1,6 +1,7 @@
 import { HTTP_STATUS } from "../../constants";
 import { ApiError } from "../../utils/ApiError";
 import { roleRepository } from "./role.repository";
+import { RoleQuery } from "./role.types";
 
 class RoleService {
   async createRole(name: string, description?: string) {
@@ -13,8 +14,8 @@ class RoleService {
     return roleRepository.createRole(name, description);
   }
 
-  async getRoles() {
-    return roleRepository.getAllRoles();
+  async getRoles(query: RoleQuery) {
+    return roleRepository.findAll(query);
   }
 
   async getRoleById(id: string) {
