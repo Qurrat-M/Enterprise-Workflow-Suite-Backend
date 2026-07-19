@@ -3,24 +3,18 @@ import { authenticate } from "../../middleware/authenticate";
 import { roleController } from "./role.controller";
 import { createRoleSchema, updateRoleSchema } from "./role.schema";
 import { validateRequest } from "../../middleware/validateRequest";
-
-// import { authorize } from "../../../middlewares/authorize";
+import { authorize } from "../../middleware/authorize";
 
 const router = Router();
 
 // Get All Roles
-router.get(
-  "/",
-  authenticate,
-  // authorize("role.read"),
-  roleController.getRoles,
-);
+router.get("/", authenticate, authorize("role.read"), roleController.getRoles);
 
 // Get Role By Id
 router.get(
   "/:id",
   authenticate,
-  // authorize("role.read"),
+  authorize("role.read"),
   roleController.getRoleById,
 );
 
