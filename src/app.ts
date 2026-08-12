@@ -12,6 +12,7 @@ import roleRoutes from "./modules/roles/role.routes";
 import permissionRoutes from "./modules/permissions/permission.routes";
 import rolePermissionRoutes from "./modules/role-permission/rolePermission.routes";
 import userRoleRoutes from "./modules/user-role/userRole.routes";
+import organizationRoutes from "./modules/organizations/organization.routes";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/api/v1/roles", roleRoutes);
 app.use("/api/v1/permissions", permissionRoutes);
 app.use("/api/v1/role-permissions", rolePermissionRoutes);
 app.use("/api/v1/users", userRoleRoutes);
+app.use("/api/v1/organizations", organizationRoutes);
 
 app.use(notFound);
 
