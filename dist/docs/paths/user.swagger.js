@@ -1,10 +1,11 @@
+"use strict";
 /**
  * @swagger
  * tags:
  *   name: Users
  *   description: User management APIs
  */
-
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * @swagger
  * components:
@@ -27,7 +28,6 @@
  *         email: { type: string, format: email }
  *         password: { type: string, format: password }
  */
-
 /**
  * @swagger
  * /users:
@@ -47,7 +47,6 @@
  *     responses:
  *       201: { description: User created successfully }
  */
-
 /**
  * @swagger
  * /users/{id}:

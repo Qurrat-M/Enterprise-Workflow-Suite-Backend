@@ -33,11 +33,14 @@ describe("authentication API", () => {
 
   it("rejects an incorrect password", async () => {
     const email = `invalid-password-${Date.now()}@example.com`;
-    await request(app).post("/api/v1/auth/register").send({
+    const register = await request(app).post("/api/v1/auth/register").send({
       firstName: "Test",
       email,
       password,
     });
+
+    expect(register.status).toBe(201);
+    expect(register.body.success).toBe(true);
 
     const login = await request(app).post("/api/v1/auth/login").send({
       email,
