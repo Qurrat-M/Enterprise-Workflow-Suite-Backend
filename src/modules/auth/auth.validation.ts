@@ -41,7 +41,9 @@ export const loginValidation = [
     .notEmpty()
     .withMessage("Email is required")
     .isEmail()
-    .withMessage("Invalid email"),
+    .withMessage("Invalid email")
+    // Match registration normalization (for example, Gmail dot aliases).
+    .normalizeEmail(),
 
   body("password").notEmpty().withMessage("Password is required"),
 ];
