@@ -8,10 +8,8 @@ export interface CreateUserInput {
 }
 
 export interface UpdateUserInput {
-  organization_id?: string;
   name?: string;
   email?: string;
-  password?: string;
 }
 
 export interface UserQuery {
@@ -20,4 +18,12 @@ export interface UserQuery {
   search?: string;
   sort?: string;
   order?: "asc" | "desc";
+}
+
+export interface AuthenticatedUser {
+  id: string;
+  organizationId: string;
+  email: string;
+  roles?: string[];
+  permissions?: string[];
 }
