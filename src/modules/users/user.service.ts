@@ -14,10 +14,7 @@ import {
 } from "./user.types";
 
 class UserService {
-  async create(
-    organizationId: string,
-    data: Omit<CreateUserInput, "organization_id">,
-  ) {
+  async create(organizationId: string, data: CreateUserInput) {
     const email = data.email.trim().toLowerCase();
 
     const existing = await userRepository.findByEmail(email);
@@ -36,10 +33,8 @@ class UserService {
 
     return userRepository.create(
       {
-        organization_id: organizationId,
-        name: data.name,
-        email,
-        password: data.password,
+        ...data,
+        organizationId,
       },
       passwordHash,
     );

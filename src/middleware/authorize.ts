@@ -17,6 +17,7 @@ export const authorize =
         req.user.id,
       );
 
+      console.log("PERMISSIONS:", permissions);
       const allowed = permissions.some(
         (permission) => permission.name === requiredPermission,
       );

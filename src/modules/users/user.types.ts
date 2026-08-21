@@ -1,14 +1,15 @@
 export type UserStatus = "ACTIVE" | "INACTIVE";
 
 export interface CreateUserInput {
-  organization_id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
+  organizationId: string;
 }
-
 export interface UpdateUserInput {
-  name?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
 }
 

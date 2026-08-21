@@ -1,5 +1,8 @@
 import { db } from "../../config/db";
 import { getPagination } from "../../utils/pagination/getPagination";
+import { HTTP_STATUS } from "../../constants";
+import { ApiError } from "../../utils/ApiError";
+
 import {
   CreateUserInput,
   UpdateUserInput,
@@ -9,47 +12,74 @@ import {
 
 const publicColumns = `
   id,
-  organization_id,
-  name,
+  first_name,
+  last_name,
   email,
-  status,
+  is_active,
   created_at,
-  updated_at
+  updated_at,
+  phone,
+  last_login,
+  profile_image
 `;
 
 class UserRepository {
+  /**
+   * Create user and add user to organization
+   */
   async create(data: CreateUserInput, passwordHash: string) {
     const { rows } = await db.query(
       `
       INSERT INTO users (
-        organization_id,
-        name,
+        first_name,
+        last_name,
         email,
-        password_hash
+        password
       )
       VALUES ($1, $2, $3, $4)
       RETURNING ${publicColumns};
       `,
-      [data.organization_id, data.name, data.email, passwordHash],
+      [data.first_name, data.last_name, data.email, passwordHash],
     );
 
-    return rows[0];
+    const user = rows[0];
+
+    // Add user to organization
+    await db.query(
+      `
+      INSERT INTO organization_users (
+        organization_id,
+        user_id,
+        status,
+        joined_at
+      )
+      VALUES ($1, $2, 'active', NOW())
+      ON CONFLICT (organization_id, user_id)
+      DO NOTHING;
+      `,
+      [data.organizationId, user.id],
+    );
+
+    return user;
   }
 
   /**
    * Used by authentication.
+   *
    * Password hash MUST be returned here.
+   *
+   * Do NOT use this method for public user responses.
    */
   async findByEmail(email: string) {
     const { rows } = await db.query(
       `
       SELECT
         id,
-        organization_id,
-        name,
+        first_name,
+        last_name,
         email,
-        password_hash,
-        status,
+        password,
+        is_active,
         created_at,
         updated_at
       FROM users
@@ -62,13 +92,19 @@ class UserRepository {
     return rows[0];
   }
 
+  /**
+   * Get a single user belonging to an organization
+   */
   async findById(id: string, organizationId: string) {
     const { rows } = await db.query(
       `
       SELECT ${publicColumns}
-      FROM users
-      WHERE id = $1
-        AND organization_id = $2;
+      FROM users u
+      INNER JOIN organization_users ou
+        ON ou.user_id = u.id
+      WHERE u.id = $1
+        AND ou.organization_id = $2
+        AND ou.status = 'active';
       `,
       [id, organizationId],
     );
@@ -76,13 +112,16 @@ class UserRepository {
     return rows[0];
   }
 
+  /**
+   * Get paginated users belonging to an organization
+   */
   async findAll(organizationId: string, query: UserQuery) {
     const { page, limit, offset, search, sort, order } = getPagination(query);
 
     const allowedSortColumns = [
-      "name",
+      "first_name",
+      "last_name",
       "email",
-      "status",
       "created_at",
       "updated_at",
     ];
@@ -91,29 +130,53 @@ class UserRepository {
 
     const filter = `%${search || ""}%`;
 
+    /**
+     * Count total records
+     */
     const countResult = await db.query(
       `
       SELECT COUNT(*) AS total
-      FROM users
-      WHERE organization_id = $1
+      FROM users u
+      INNER JOIN organization_users ou
+        ON ou.user_id = u.id
+      WHERE ou.organization_id = $1
+        AND ou.status = 'active'
         AND (
-          LOWER(name) LIKE LOWER($2)
-          OR LOWER(email) LIKE LOWER($2)
+          LOWER(u.first_name) LIKE LOWER($2)
+          OR LOWER(u.last_name) LIKE LOWER($2)
+          OR LOWER(u.email) LIKE LOWER($2)
         );
       `,
       [organizationId, filter],
     );
 
+    /**
+     * Fetch users
+     */
     const { rows } = await db.query(
       `
-      SELECT ${publicColumns}
-      FROM users
-      WHERE organization_id = $1
+      SELECT
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.is_active,
+        u.created_at,
+        u.updated_at,
+        u.phone,
+        u.last_login,
+        u.profile_image
+      FROM users u
+      INNER JOIN organization_users ou
+        ON ou.user_id = u.id
+      WHERE ou.organization_id = $1
+        AND ou.status = 'active'
         AND (
-          LOWER(name) LIKE LOWER($2)
-          OR LOWER(email) LIKE LOWER($2)
+          LOWER(u.first_name) LIKE LOWER($2)
+          OR LOWER(u.last_name) LIKE LOWER($2)
+          OR LOWER(u.email) LIKE LOWER($2)
         )
-      ORDER BY ${sortColumn} ${order}
+      ORDER BY u.${sortColumn} ${order}
       LIMIT $3
       OFFSET $4;
       `,
@@ -124,6 +187,7 @@ class UserRepository {
 
     return {
       items: rows,
+
       pagination: {
         page,
         limit,
@@ -133,38 +197,59 @@ class UserRepository {
     };
   }
 
+  /**
+   * Update user information
+   */
   async update(id: string, organizationId: string, data: UpdateUserInput) {
     const fields: string[] = [];
     const values: unknown[] = [];
 
     const add = (field: string, value: unknown) => {
       values.push(value);
+
       fields.push(`${field} = $${values.length}`);
     };
 
-    if (data.name !== undefined) {
-      add("name", data.name);
+    if (data.first_name !== undefined) {
+      add("first_name", data.first_name);
+    }
+
+    if (data.last_name !== undefined) {
+      add("last_name", data.last_name);
     }
 
     if (data.email !== undefined) {
       add("email", data.email);
     }
 
+    /**
+     * Nothing to update
+     */
     if (!fields.length) {
       return this.findById(id, organizationId);
     }
 
     fields.push("updated_at = NOW()");
 
+    /**
+     * ID parameter
+     */
     values.push(id);
+
+    /**
+     * Organization ID parameter
+     */
     values.push(organizationId);
 
     const { rows } = await db.query(
       `
-      UPDATE users
+      UPDATE users u
       SET ${fields.join(", ")}
-      WHERE id = $${values.length - 1}
-        AND organization_id = $${values.length}
+      FROM organization_users ou
+      WHERE u.id = $${values.length - 1}
+        AND ou.user_id = u.id
+        AND ou.organization_id = $${values.length}
+        AND ou.status = 'active'
       RETURNING ${publicColumns};
       `,
       values,
@@ -173,23 +258,34 @@ class UserRepository {
     return rows[0];
   }
 
+  /**
+   * Activate / deactivate user
+   */
   async updateStatus(id: string, organizationId: string, status: UserStatus) {
+    const isActive = status === "ACTIVE";
+
     const { rows } = await db.query(
       `
-      UPDATE users
+      UPDATE users u
       SET
-        status = $1,
+        is_active = $1,
         updated_at = NOW()
-      WHERE id = $2
-        AND organization_id = $3
+      FROM organization_users ou
+      WHERE u.id = $2
+        AND ou.user_id = u.id
+        AND ou.organization_id = $3
+        AND ou.status = 'active'
       RETURNING ${publicColumns};
       `,
-      [status, id, organizationId],
+      [isActive, id, organizationId],
     );
 
     return rows[0];
   }
 
+  /**
+   * Replace user's roles within an organization
+   */
   async replaceRoles(
     userId: string,
     organizationId: string,
@@ -200,31 +296,47 @@ class UserRepository {
     try {
       await client.query("BEGIN");
 
-      // Confirm user belongs to organization
+      /**
+       * Confirm user belongs to organization
+       */
       const userResult = await client.query(
         `
-        SELECT id
-        FROM users
-        WHERE id = $1
-          AND organization_id = $2;
-        `,
+          SELECT u.id
+          FROM users u
+          INNER JOIN organization_users ou
+            ON ou.user_id = u.id
+          WHERE u.id = $1
+            AND ou.organization_id = $2
+            AND ou.status = 'active';
+          `,
         [userId, organizationId],
       );
 
       if (!userResult.rows.length) {
-        throw new Error("User does not belong to this organization");
+        throw new ApiError(
+          HTTP_STATUS.NOT_FOUND,
+          "User does not belong to this organization",
+        );
       }
 
-      // Remove existing roles
+      /**
+       * Remove existing roles
+       * belonging to this organization only
+       */
       await client.query(
         `
-        DELETE FROM user_roles
-        WHERE user_id = $1;
+        DELETE FROM user_roles ur
+        USING roles r
+        WHERE ur.user_id = $1
+          AND ur.role_id = r.id
+          AND r.organization_id = $2;
         `,
-        [userId],
+        [userId, organizationId],
       );
 
-      // Assign new roles
+      /**
+       * Assign new roles
+       */
       if (roleIds.length) {
         await client.query(
           `
@@ -243,18 +355,20 @@ class UserRepository {
         );
       }
 
-      // Return assigned roles
+      /**
+       * Return assigned roles
+       */
       const { rows } = await client.query(
         `
-        SELECT
-          r.*
-        FROM user_roles ur
-        INNER JOIN roles r
-          ON r.id = ur.role_id
-        WHERE ur.user_id = $1
-        ORDER BY r.name;
-        `,
-        [userId],
+          SELECT r.*
+          FROM user_roles ur
+          INNER JOIN roles r
+            ON r.id = ur.role_id
+          WHERE ur.user_id = $1
+            AND r.organization_id = $2
+          ORDER BY r.name;
+          `,
+        [userId, organizationId],
       );
 
       await client.query("COMMIT");
@@ -262,12 +376,16 @@ class UserRepository {
       return rows;
     } catch (error) {
       await client.query("ROLLBACK");
+
       throw error;
     } finally {
       client.release();
     }
   }
 
+  /**
+   * Get user's roles within an organization
+   */
   async getRoles(userId: string, organizationId: string) {
     const { rows } = await db.query(
       `
@@ -275,10 +393,12 @@ class UserRepository {
       FROM user_roles ur
       INNER JOIN roles r
         ON r.id = ur.role_id
-      INNER JOIN users u
-        ON u.id = ur.user_id
+      INNER JOIN organization_users ou
+        ON ou.user_id = ur.user_id
       WHERE ur.user_id = $1
-        AND u.organization_id = $2
+        AND ou.organization_id = $2
+        AND ou.status = 'active'
+        AND r.organization_id = $2
       ORDER BY r.name;
       `,
       [userId, organizationId],

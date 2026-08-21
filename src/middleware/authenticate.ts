@@ -5,7 +5,9 @@ import { env } from "../config/env";
 import { ApiError } from "../utils/ApiError";
 import { HTTP_STATUS } from "../constants";
 
-export const authenticate = (
+import { db } from "../config/db";
+
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -40,7 +42,31 @@ export const authenticate = (
       email: string;
     };
 
-    req.user = decoded;
+    const { rows } = await db.query(
+      `
+    SELECT organization_id
+    FROM organization_users
+    WHERE user_id = $1
+      AND status = 'active'
+    ORDER BY joined_at
+    LIMIT 1;
+    `,
+      [decoded.id],
+    );
+
+    if (!rows.length) {
+      return next(
+        new ApiError(
+          HTTP_STATUS.FORBIDDEN,
+          "User is not a member of any organization",
+        ),
+      );
+    }
+
+    req.user = {
+      ...decoded,
+      organizationId: rows[0].organization_id,
+    };
 
     next();
   } catch (error) {

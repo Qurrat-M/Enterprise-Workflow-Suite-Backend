@@ -19,6 +19,7 @@
  *         schema:
  *           type: integer
  *           default: 1
+ *           minimum: 1
  *         description: Page number
  *
  *       - in: query
@@ -26,6 +27,7 @@
  *         schema:
  *           type: integer
  *           default: 10
+ *           minimum: 1
  *         description: Number of records per page
  *
  *       - in: query
@@ -42,6 +44,7 @@
  *             - name
  *             - created_at
  *             - updated_at
+ *           default: created_at
  *         description: Sort field
  *
  *       - in: query
@@ -57,28 +60,10 @@
  *     responses:
  *       200:
  *         description: Roles fetched successfully
- */
-
-/**
- * @swagger
- * /roles/{id}:
- *   get:
- *     summary: Get role by ID
- *     tags: [Roles]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Role fetched successfully
- *       404:
- *         description: Role not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  */
 
 /**
@@ -98,6 +83,41 @@
  *     responses:
  *       201:
  *         description: Role created successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       409:
+ *         description: Role already exists
+ */
+
+/**
+ * @swagger
+ * /roles/{id}:
+ *   get:
+ *     summary: Get role by ID
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Role ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Role fetched successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Role not found
  */
 
 /**
@@ -112,6 +132,7 @@
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Role ID
  *         schema:
  *           type: string
  *           format: uuid
@@ -124,6 +145,16 @@
  *     responses:
  *       200:
  *         description: Role updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Role not found
+ *       409:
+ *         description: Role already exists
  */
 
 /**
@@ -138,10 +169,126 @@
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Role ID
  *         schema:
  *           type: string
  *           format: uuid
  *     responses:
  *       200:
  *         description: Role deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Role not found
+ */
+
+/**
+ * @swagger
+ * /roles/{id}/permissions:
+ *   get:
+ *     summary: Get permissions assigned to a role
+ *     description: Returns all permissions currently assigned to the specified role.
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Role ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Role permissions fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Role permissions fetched successfully
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Permission'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *
+ *       401:
+ *         description: Unauthorized
+ *
+ *       403:
+ *         description: Forbidden
+ *
+ *       404:
+ *         description: Role not found
+ */
+
+/**
+ * @swagger
+ * /roles/{id}/permissions:
+ *   put:
+ *     summary: Replace permissions assigned to a role
+ *     description: Removes the role's existing permissions and assigns the provided permissions.
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Role ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ReplaceRolePermissions'
+ *
+ *     responses:
+ *       200:
+ *         description: Role permissions updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Role permissions updated successfully
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Permission'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *
+ *       400:
+ *         description: Invalid permission IDs
+ *
+ *       401:
+ *         description: Unauthorized
+ *
+ *       403:
+ *         description: Forbidden
+ *
+ *       404:
+ *         description: Role not found
  */

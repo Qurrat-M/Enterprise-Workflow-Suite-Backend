@@ -60,6 +60,35 @@ class RoleService {
 
     return roleRepository.deleteRole(id);
   }
+
+  async getRolePermissions(roleId: string) {
+    const role = await roleRepository.findRoleById(roleId);
+
+    if (!role) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, "Role not found");
+    }
+
+    return roleRepository.getRolePermissions(roleId);
+  }
+
+  async replaceRolePermissions(roleId: string, permissionIds: string[]) {
+    const role = await roleRepository.findRoleById(roleId);
+
+    if (!role) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, "Role not found");
+    }
+
+    if (role.is_system) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "System role permissions cannot be modified",
+      );
+    }
+
+    const uniquePermissionIds = [...new Set(permissionIds)];
+
+    return roleRepository.replaceRolePermissions(roleId, uniquePermissionIds);
+  }
 }
 
 export const roleService = new RoleService();

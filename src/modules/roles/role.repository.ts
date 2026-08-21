@@ -148,6 +148,115 @@ class RoleRepository {
 
     return rows[0];
   }
+
+  async getRolePermissions(roleId: string) {
+    const { rows } = await db.query(
+      `
+    SELECT
+      p.id,
+      p.module,
+      p.action,
+      p.name,
+      p.display_name,
+      p.description,
+      p.is_active,
+      p.created_at
+    FROM role_permissions rp
+    INNER JOIN permissions p
+      ON p.id = rp.permission_id
+    WHERE rp.role_id = $1
+      AND p.is_active = true
+    ORDER BY p.module, p.action;
+    `,
+      [roleId],
+    );
+
+    return rows;
+  }
+
+  async replaceRolePermissions(roleId: string, permissionIds: string[]) {
+    const client = await db.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      // Verify role exists
+      const roleResult = await client.query(
+        `
+      SELECT id
+      FROM roles
+      WHERE id = $1
+        AND is_active = true;
+      `,
+        [roleId],
+      );
+
+      if (!roleResult.rows.length) {
+        throw new Error("Role not found");
+      }
+
+      // Remove existing permissions
+      await client.query(
+        `
+      DELETE FROM role_permissions
+      WHERE role_id = $1;
+      `,
+        [roleId],
+      );
+
+      // Assign new permissions
+      if (permissionIds.length) {
+        await client.query(
+          `
+        INSERT INTO role_permissions (
+          role_id,
+          permission_id
+        )
+        SELECT
+          $1,
+          p.id
+        FROM permissions p
+        WHERE p.id = ANY($2::uuid[])
+          AND p.is_active = true
+        ON CONFLICT (role_id, permission_id)
+        DO NOTHING;
+        `,
+          [roleId, permissionIds],
+        );
+      }
+
+      // Return assigned permissions
+      const { rows } = await client.query(
+        `
+      SELECT
+        p.id,
+        p.module,
+        p.action,
+        p.name,
+        p.display_name,
+        p.description,
+        p.is_active,
+        p.created_at
+      FROM role_permissions rp
+      INNER JOIN permissions p
+        ON p.id = rp.permission_id
+      WHERE rp.role_id = $1
+        AND p.is_active = true
+      ORDER BY p.module, p.action;
+      `,
+        [roleId],
+      );
+
+      await client.query("COMMIT");
+
+      return rows;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
 }
 
 export const roleRepository = new RoleRepository();

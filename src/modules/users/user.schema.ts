@@ -5,22 +5,29 @@ export const userIdSchema = [
 ];
 
 export const createUserSchema = [
-  body("name")
+  body("first_name")
     .trim()
     .notEmpty()
-    .withMessage("Name is required")
+    .withMessage("First name is required")
     .isLength({ max: 255 })
-    .withMessage("Name cannot exceed 255 characters"),
+    .withMessage("First name cannot exceed 255 characters"),
+
+  body("last_name")
+    .trim()
+    .notEmpty()
+    .withMessage("Last name is required")
+    .isLength({ max: 255 })
+    .withMessage("Last name cannot exceed 255 characters"),
 
   body("email")
     .trim()
     .isEmail()
     .withMessage("Email must be a valid email address")
-   .normalizeEmail({
-     all_lowercase: true,
-    gmail_remove_dots: false,
-     gmail_remove_subaddress: false,
-     outlookdotcom_remove_subaddress: false,
+    .normalizeEmail({
+      all_lowercase: true,
+      gmail_remove_dots: false,
+      gmail_remove_subaddress: false,
+      outlookdotcom_remove_subaddress: false,
       yahoo_remove_subaddress: false,
       icloud_remove_subaddress: false,
     }),

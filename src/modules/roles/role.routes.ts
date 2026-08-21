@@ -7,6 +7,20 @@ import { authorize } from "../../middleware/authorize";
 
 const router = Router();
 
+router.get(
+  "/:id/permissions",
+  authenticate,
+  authorize("role.read"),
+  roleController.getRolePermissions,
+);
+
+router.put(
+  "/:id/permissions",
+  authenticate,
+  authorize("role.permissions.assign"),
+  roleController.replaceRolePermissions,
+);
+
 // Get All Roles
 router.get("/", authenticate, authorize("role.read"), roleController.getRoles);
 
