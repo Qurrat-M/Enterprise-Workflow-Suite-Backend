@@ -1,17 +1,21 @@
 import { db } from "../../config/db";
 import { getPagination } from "../../utils/pagination/getPagination";
+
 import {
   CreateOrganizationInput,
   OrganizationQuery,
+  OrganizationStatus,
   UpdateOrganizationInput,
 } from "./organization.types";
 
 class OrganizationRepository {
+  /**
+   * Create organization
+   */
   async create(data: CreateOrganizationInput) {
     const result = await db.query(
       `
-      INSERT INTO organizations
-      (
+      INSERT INTO organizations (
         name,
         code,
         logo_url,
@@ -24,8 +28,7 @@ class OrganizationRepository {
         timezone,
         currency
       )
-      VALUES
-      (
+      VALUES (
         $1,
         $2,
         $3,
@@ -58,6 +61,9 @@ class OrganizationRepository {
     return result.rows[0];
   }
 
+  /**
+   * Find organization by code
+   */
   async findByCode(code: string) {
     const result = await db.query(
       `
@@ -71,68 +77,9 @@ class OrganizationRepository {
     return result.rows[0];
   }
 
-  async findAll(query: OrganizationQuery) {
-    const { page, limit, offset, search, sort, order } = getPagination(query);
-
-    const allowedSortColumns = [
-      "name",
-      "code",
-      "city",
-      "country",
-      "status",
-      "created_at",
-    ];
-
-    const sortColumn = allowedSortColumns.includes(sort) ? sort : "created_at";
-
-    const countResult = await db.query(
-      `
-      SELECT COUNT(*) AS total
-      FROM organizations
-      WHERE
-        (
-          LOWER(name) LIKE LOWER($1)
-          OR LOWER(code) LIKE LOWER($1)
-          OR LOWER(COALESCE(email, '')) LIKE LOWER($1)
-          OR LOWER(COALESCE(city, '')) LIKE LOWER($1)
-          OR LOWER(COALESCE(country, '')) LIKE LOWER($1)
-        );
-      `,
-      [`%${search}%`],
-    );
-
-    const totalRecords = Number(countResult.rows[0].total);
-
-    const result = await db.query(
-      `
-      SELECT *
-      FROM organizations
-      WHERE
-        (
-          LOWER(name) LIKE LOWER($1)
-          OR LOWER(code) LIKE LOWER($1)
-          OR LOWER(COALESCE(email, '')) LIKE LOWER($1)
-          OR LOWER(COALESCE(city, '')) LIKE LOWER($1)
-          OR LOWER(COALESCE(country, '')) LIKE LOWER($1)
-        )
-      ORDER BY ${sortColumn} ${order}
-      LIMIT $2
-      OFFSET $3;
-      `,
-      [`%${search}%`, limit, offset],
-    );
-
-    return {
-      items: result.rows,
-      pagination: {
-        page,
-        limit,
-        totalRecords,
-        totalPages: Math.ceil(totalRecords / limit),
-      },
-    };
-  }
-
+  /**
+   * Find organization by ID
+   */
   async findById(id: string) {
     const result = await db.query(
       `
@@ -146,6 +93,86 @@ class OrganizationRepository {
     return result.rows[0];
   }
 
+  /**
+   * Get all organizations
+   * Supports:
+   * - pagination
+   * - search
+   * - sorting
+   */
+  async findAll(query: OrganizationQuery) {
+    const { page, limit, offset, search, sort, order } = getPagination(query);
+
+    const allowedSortColumns = [
+      "name",
+      "code",
+      "city",
+      "country",
+      "status",
+      "created_at",
+      "updated_at",
+    ];
+
+    const sortColumn = allowedSortColumns.includes(sort) ? sort : "created_at";
+
+    const searchPattern = `%${search}%`;
+
+    /**
+     * Total count
+     */
+    const countResult = await db.query(
+      `
+      SELECT COUNT(*) AS total
+      FROM organizations
+      WHERE
+        LOWER(name) LIKE LOWER($1)
+        OR LOWER(code) LIKE LOWER($1)
+        OR LOWER(COALESCE(email, '')) LIKE LOWER($1)
+        OR LOWER(COALESCE(phone, '')) LIKE LOWER($1)
+        OR LOWER(COALESCE(city, '')) LIKE LOWER($1)
+        OR LOWER(COALESCE(country, '')) LIKE LOWER($1);
+      `,
+      [searchPattern],
+    );
+
+    const totalRecords = Number(countResult.rows[0].total);
+
+    /**
+     * Data
+     */
+    const result = await db.query(
+      `
+      SELECT *
+      FROM organizations
+      WHERE
+        LOWER(name) LIKE LOWER($1)
+        OR LOWER(code) LIKE LOWER($1)
+        OR LOWER(COALESCE(email, '')) LIKE LOWER($1)
+        OR LOWER(COALESCE(phone, '')) LIKE LOWER($1)
+        OR LOWER(COALESCE(city, '')) LIKE LOWER($1)
+        OR LOWER(COALESCE(country, '')) LIKE LOWER($1)
+      ORDER BY ${sortColumn} ${order}
+      LIMIT $2
+      OFFSET $3;
+      `,
+      [searchPattern, limit, offset],
+    );
+
+    return {
+      items: result.rows,
+
+      pagination: {
+        page,
+        limit,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / limit),
+      },
+    };
+  }
+
+  /**
+   * Update organization
+   */
   async update(id: string, data: UpdateOrganizationInput) {
     const fields: string[] = [];
     const values: unknown[] = [];
@@ -169,11 +196,16 @@ class OrganizationRepository {
     for (const field of allowedFields) {
       if (data[field] !== undefined) {
         fields.push(`${field} = $${parameterIndex}`);
+
         values.push(data[field]);
+
         parameterIndex++;
       }
     }
 
+    /**
+     * Nothing to update
+     */
     if (fields.length === 0) {
       return this.findById(id);
     }
@@ -196,7 +228,10 @@ class OrganizationRepository {
     return result.rows[0];
   }
 
-  async updateStatus(id: string, status: "ACTIVE" | "INACTIVE") {
+  /**
+   * Activate / Deactivate organization
+   */
+  async updateStatus(id: string, status: OrganizationStatus) {
     const result = await db.query(
       `
       UPDATE organizations
@@ -212,6 +247,9 @@ class OrganizationRepository {
     return result.rows[0];
   }
 
+  /**
+   * Soft delete organization
+   */
   async delete(id: string) {
     const result = await db.query(
       `

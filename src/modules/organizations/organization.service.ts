@@ -1,87 +1,133 @@
+import { HTTP_STATUS } from "../../constants";
+import { ApiError } from "../../utils/ApiError";
+
 import organizationRepository from "./organization.repository";
 
 import {
   CreateOrganizationInput,
-  OrganizationStatus,
   OrganizationQuery,
+  OrganizationStatus,
   UpdateOrganizationInput,
 } from "./organization.types";
 
 class OrganizationService {
+  /**
+   * Create organization
+   */
   async createOrganization(data: CreateOrganizationInput) {
-    const existingOrganization = await organizationRepository.findByCode(
-      data.code,
-    );
+    const existing = await organizationRepository.findByCode(data.code);
 
-    if (existingOrganization) {
-      throw new Error("Organization code already exists");
+    if (existing) {
+      throw new ApiError(
+        HTTP_STATUS.CONFLICT,
+        "Organization code already exists",
+      );
     }
 
     return organizationRepository.create(data);
   }
 
+  /**
+   * Get organizations
+   */
   async getOrganizations(query: OrganizationQuery) {
     return organizationRepository.findAll(query);
   }
 
+  /**
+   * Get organization by ID
+   */
   async getOrganizationById(id: string) {
     const organization = await organizationRepository.findById(id);
 
     if (!organization) {
-      throw new Error("Organization not found");
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, "Organization not found");
     }
 
     return organization;
   }
 
+  /**
+   * Update organization
+   */
   async updateOrganization(id: string, data: UpdateOrganizationInput) {
-    // Make sure organization exists
-    await this.getOrganizationById(id);
+    const organization = await organizationRepository.findById(id);
 
-    // If code is being changed, make sure it isn't already used
-    if (data.code) {
-      const existingOrganization = await organizationRepository.findByCode(
-        data.code,
+    if (!organization) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, "Organization not found");
+    }
+
+    /**
+     * Prevent updating an inactive organization.
+     *
+     * Remove this check if you want inactive organizations
+     * to still be editable.
+     */
+    if (organization.status === "INACTIVE") {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "Inactive organization cannot be updated",
       );
+    }
 
-      if (existingOrganization && existingOrganization.id !== id) {
-        throw new Error("Organization code already exists");
+    /**
+     * Check duplicate organization code
+     */
+    if (data.code) {
+      const existing = await organizationRepository.findByCode(data.code);
+
+      if (existing && existing.id !== id) {
+        throw new ApiError(
+          HTTP_STATUS.CONFLICT,
+          "Organization code already exists",
+        );
       }
     }
 
-    const organization = await organizationRepository.update(id, data);
-
-    if (!organization) {
-      throw new Error("Organization not found");
-    }
-
-    return organization;
+    return organizationRepository.update(id, data);
   }
 
+  /**
+   * Activate / Deactivate organization
+   */
   async updateOrganizationStatus(id: string, status: OrganizationStatus) {
-    // Make sure organization exists
-    await this.getOrganizationById(id);
-
-    const organization = await organizationRepository.updateStatus(id, status);
+    const organization = await organizationRepository.findById(id);
 
     if (!organization) {
-      throw new Error("Organization not found");
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, "Organization not found");
     }
 
-    return organization;
+    /**
+     * Avoid unnecessary DB update
+     */
+    if (organization.status === status) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        `Organization is already ${status.toLowerCase()}`,
+      );
+    }
+
+    return organizationRepository.updateStatus(id, status);
   }
 
+  /**
+   * Soft delete organization
+   */
   async deleteOrganization(id: string) {
-    // Make sure organization exists
-    await this.getOrganizationById(id);
-
-    const organization = await organizationRepository.delete(id);
+    const organization = await organizationRepository.findById(id);
 
     if (!organization) {
-      throw new Error("Organization not found");
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, "Organization not found");
     }
 
-    return organization;
+    if (organization.status === "INACTIVE") {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "Organization is already inactive",
+      );
+    }
+
+    return organizationRepository.delete(id);
   }
 }
 

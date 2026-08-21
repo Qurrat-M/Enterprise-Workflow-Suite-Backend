@@ -9,18 +9,30 @@ import {
 } from "../../docs/schemas/organization.schema";
 
 import { authenticate } from "../../middleware/authenticate";
+import { authorize } from "../../middleware/authorize";
 import { validateRequest } from "../../middleware/validateRequest";
 
 const router = Router();
 
-router.get("/", authenticate, organizationController.getOrganizations);
+router.get(
+  "/",
+  authenticate,
+  authorize("organization.read"),
+  organizationController.getOrganizations,
+);
 
-router.get("/:id", authenticate, organizationController.getOrganizationById);
+router.get(
+  "/:id",
+  authenticate,
+  authorize("organization.read"),
+  organizationController.getOrganizationById,
+);
 
 router.post(
   "/",
   authenticate,
-  createOrganizationSchema,
+  authorize("organization.create"),
+  ...createOrganizationSchema,
   validateRequest,
   organizationController.createOrganization,
 );
@@ -28,7 +40,8 @@ router.post(
 router.put(
   "/:id",
   authenticate,
-  updateOrganizationSchema,
+  authorize("organization.update"),
+  ...updateOrganizationSchema,
   validateRequest,
   organizationController.updateOrganization,
 );
@@ -36,11 +49,18 @@ router.put(
 router.patch(
   "/:id/status",
   authenticate,
-  updateOrganizationStatusSchema,
+  authorize("organization.status.update"),
+  ...updateOrganizationStatusSchema,
   validateRequest,
   organizationController.updateOrganizationStatus,
 );
 
-router.delete("/:id", authenticate, organizationController.deleteOrganization);
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("organization.delete"),
+  organizationController.deleteOrganization,
+);
+
 
 export default router;

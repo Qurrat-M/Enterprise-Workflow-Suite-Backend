@@ -1,9 +1,11 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+
 import organizationService from "./organization.service";
 
 export const createOrganization = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const organization = await organizationService.createOrganization(req.body);
@@ -14,27 +16,14 @@ export const createOrganization = async (
       data: organization,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to create organization";
-
-    if (message === "Organization code already exists") {
-      res.status(409).json({
-        success: false,
-        message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message,
-    });
+    next(error);
   }
 };
 
 export const getOrganizations = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const organizations = await organizationService.getOrganizations(req.query);
@@ -45,21 +34,14 @@ export const getOrganizations = async (
       data: organizations,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to retrieve organizations";
-
-    res.status(500).json({
-      success: false,
-      message,
-    });
+    next(error);
   }
 };
 
 export const getOrganizationById = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const organization = await organizationService.getOrganizationById(
@@ -72,29 +54,14 @@ export const getOrganizationById = async (
       data: organization,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to retrieve organization";
-
-    if (message === "Organization not found") {
-      res.status(404).json({
-        success: false,
-        message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message,
-    });
+    next(error);
   }
 };
 
 export const updateOrganization = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const organization = await organizationService.updateOrganization(
@@ -108,35 +75,14 @@ export const updateOrganization = async (
       data: organization,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to update organization";
-
-    if (message === "Organization not found") {
-      res.status(404).json({
-        success: false,
-        message,
-      });
-      return;
-    }
-
-    if (message === "Organization code already exists") {
-      res.status(409).json({
-        success: false,
-        message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message,
-    });
+    next(error);
   }
 };
 
 export const updateOrganizationStatus = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const organization = await organizationService.updateOrganizationStatus(
@@ -150,29 +96,14 @@ export const updateOrganizationStatus = async (
       data: organization,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to update organization status";
-
-    if (message === "Organization not found") {
-      res.status(404).json({
-        success: false,
-        message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message,
-    });
+    next(error);
   }
 };
 
 export const deleteOrganization = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     await organizationService.deleteOrganization(req.params.id);
@@ -182,21 +113,7 @@ export const deleteOrganization = async (
       message: "Organization deleted successfully",
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to delete organization";
-
-    if (message === "Organization not found") {
-      res.status(404).json({
-        success: false,
-        message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      message,
-    });
+    next(error);
   }
 };
 

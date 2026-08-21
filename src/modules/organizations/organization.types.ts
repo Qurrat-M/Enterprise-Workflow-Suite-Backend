@@ -46,6 +46,10 @@ export interface UpdateOrganizationInput {
   currency?: string;
 }
 
+export interface UpdateOrganizationStatusInput {
+  status: OrganizationStatus;
+}
+
 export interface OrganizationQuery {
   page?: number;
   limit?: number;
