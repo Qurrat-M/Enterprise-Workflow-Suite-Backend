@@ -153,6 +153,30 @@ class RoleController {
       next(error);
     }
   }
+
+  async updateRoleStatus(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const id = req.params.id as string;
+
+      const { status } = req.body as {
+        status: "ACTIVE" | "INACTIVE";
+      };
+
+      const role = await roleService.updateRoleStatus(id, status === "ACTIVE");
+
+      res
+        .status(HTTP_STATUS.OK)
+        .json(new ApiResponse(true, "Role status updated successfully", role));
+
+      return;
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const roleController = new RoleController();

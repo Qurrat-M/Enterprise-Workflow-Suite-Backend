@@ -49,20 +49,24 @@ class UserRoleRepository {
   async getUserPermissions(userId: string) {
     const { rows } = await db.query(
       `
-      SELECT DISTINCT
-        p.name
-      FROM user_roles ur
+    SELECT DISTINCT
+      p.name
+    FROM user_roles ur
 
-      INNER JOIN role_permissions rp
-        ON ur.role_id = rp.role_id
+    INNER JOIN roles r
+      ON ur.role_id = r.id
 
-      INNER JOIN permissions p
-        ON rp.permission_id = p.id
+    INNER JOIN role_permissions rp
+      ON ur.role_id = rp.role_id
 
-      WHERE
-        ur.user_id = $1
-        AND p.is_active = true;
-      `,
+    INNER JOIN permissions p
+      ON rp.permission_id = p.id
+
+    WHERE
+      ur.user_id = $1
+      AND r.is_active = true
+      AND p.is_active = true;
+    `,
       [userId],
     );
 

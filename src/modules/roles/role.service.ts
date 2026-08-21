@@ -89,6 +89,23 @@ class RoleService {
 
     return roleRepository.replaceRolePermissions(roleId, uniquePermissionIds);
   }
+
+  async updateRoleStatus(id: string, isActive: boolean) {
+    const role = await roleRepository.findRoleById(id);
+
+    if (!role) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, "Role not found");
+    }
+
+    if (role.is_system) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "System roles cannot be deactivated",
+      );
+    }
+
+    return roleRepository.updateRoleStatus(id, isActive);
+  }
 }
 
 export const roleService = new RoleService();

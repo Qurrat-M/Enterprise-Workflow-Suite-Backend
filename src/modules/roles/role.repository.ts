@@ -257,6 +257,22 @@ class RoleRepository {
       client.release();
     }
   }
+
+  async updateRoleStatus(id: string, isActive: boolean) {
+    const { rows } = await db.query(
+      `
+    UPDATE roles
+    SET
+      is_active = $1,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $2
+    RETURNING *;
+    `,
+      [isActive, id],
+    );
+
+    return rows[0];
+  }
 }
 
 export const roleRepository = new RoleRepository();

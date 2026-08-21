@@ -292,3 +292,61 @@
  *       404:
  *         description: Role not found
  */
+
+/**
+ * @swagger
+ * /roles/{id}/status:
+ *   patch:
+ *     summary: Update role status
+ *     description: Activate or deactivate a role. System roles cannot be deactivated.
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Role ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateRoleStatus'
+ *
+ *     responses:
+ *       200:
+ *         description: Role status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Role status updated successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/Role'
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *
+ *       400:
+ *         description: Invalid status or system role cannot be deactivated
+ *
+ *       401:
+ *         description: Unauthorized
+ *
+ *       403:
+ *         description: Forbidden
+ *
+ *       404:
+ *         description: Role not found
+ */

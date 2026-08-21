@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
 import { roleController } from "./role.controller";
-import { createRoleSchema, updateRoleSchema } from "./role.schema";
+import {
+  createRoleSchema,
+  updateRoleSchema,
+  updateRoleStatusSchema,
+} from "./role.schema";
 import { validateRequest } from "../../middleware/validateRequest";
 import { authorize } from "../../middleware/authorize";
 
@@ -36,23 +40,35 @@ router.get(
 router.post(
   "/",
   authenticate,
+  authorize("role.create"),
   ...createRoleSchema,
   validateRequest,
   roleController.createRole,
 );
-
-// Update Role
 router.put(
   "/:id",
   authenticate,
+  authorize("role.update"),
   ...updateRoleSchema,
   validateRequest,
   roleController.updateRole,
 );
 
 // Delete Role
-router.delete("/:id", authenticate, (req, res, next) =>
-  roleController.deleteRole(req, res, next),
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("role.delete"),
+  roleController.deleteRole,
 );
 
+// Update Role Status
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize("role.update"),
+  ...updateRoleStatusSchema,
+  validateRequest,
+  roleController.updateRoleStatus,
+);
 export default router;

@@ -29,6 +29,11 @@ export class AuthService {
       throw new ApiError(HTTP_STATUS.UNAUTHORIZED, "Invalid email or password");
     }
 
+    // Block inactive users from logging in
+    if (!user.is_active) {
+      throw new ApiError(HTTP_STATUS.FORBIDDEN, "User account is inactive");
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -47,6 +52,7 @@ export class AuthService {
       user: userWithoutPassword,
     };
   }
+  
   async getProfile(userId: string) {
     const user = await authRepository.findUserById(userId);
 

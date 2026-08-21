@@ -28,3 +28,11 @@ export const updateRoleSchema = [
     .isLength({ max: 500 })
     .withMessage("Description cannot exceed 500 characters"),
 ];
+
+export const updateRoleStatusSchema = [
+  body("status")
+    .notEmpty()
+    .withMessage("Status is required")
+    .isIn(["ACTIVE", "INACTIVE"])
+    .withMessage("Status must be either ACTIVE or INACTIVE"),
+];
