@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { ApiError } from "../utils/ApiError";
 import { HTTP_STATUS } from "../constants";
-
 import { db } from "../config/db";
 
 export const authenticate = async (
@@ -44,15 +43,20 @@ export const authenticate = async (
 
     const { rows } = await db.query(
       `
-    SELECT organization_id
-    FROM organization_users
-    WHERE user_id = $1
-      AND status = 'active'
-    ORDER BY joined_at
-    LIMIT 1;
-    `,
+  SELECT organization_id
+  FROM organization_users
+  WHERE user_id = $1
+    AND status = 'ACTIVE'
+  ORDER BY joined_at
+  LIMIT 1;
+  `,
       [decoded.id],
     );
+
+    // TEMPORARY DEBUG LOGS
+    console.log("AUTH USER ID:", decoded.id);
+    console.log("AUTH EMAIL:", decoded.email);
+    console.log("ORG MEMBERSHIP:", rows);
 
     if (!rows.length) {
       return next(
@@ -70,6 +74,8 @@ export const authenticate = async (
 
     next();
   } catch (error) {
+    console.error("AUTH ERROR:", error);
+
     return next(
       new ApiError(HTTP_STATUS.UNAUTHORIZED, "Invalid or expired token"),
     );
