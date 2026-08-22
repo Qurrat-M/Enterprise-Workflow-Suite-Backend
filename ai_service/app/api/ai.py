@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.llm_service import generate_response
+
 
 router = APIRouter(
     prefix="/api/v1/ai",
@@ -13,9 +15,12 @@ class AnalyzeRequest(BaseModel):
 
 
 @router.post("/analyze")
-def analyze(request: AnalyzeRequest):
+async def analyze(request: AnalyzeRequest):
+
+    answer = await generate_response(request.question)
+
     return {
         "success": True,
-        "message": "AI analysis endpoint is working",
-        "question": request.question
+        "question": request.question,
+        "answer": answer
     }
