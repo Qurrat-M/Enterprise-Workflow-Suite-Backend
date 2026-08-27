@@ -1,12 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel
 
-from app.services.ai_service import analyze_question
+from app.services.ai_job_service import create_job, get_job
+from app.services.ai_worker import process_ai_job
 
 
 router = APIRouter(
     prefix="/api/v1/ai",
-    tags=["AI"]
+    tags=["AI"],
 )
 
 
@@ -16,17 +17,27 @@ class AnalyzeRequest(BaseModel):
 
 
 @router.post("/analyze")
-async def analyze(request: AnalyzeRequest):
+async def analyze(
+    request: AnalyzeRequest,
+    background_tasks: BackgroundTasks,
+):
     try:
-        answer = await analyze_question(
-            question=request.question,
+        job_id = create_job(
             organization_id=request.organization_id,
+            question=request.question,
+        )
+
+        background_tasks.add_task(
+            process_ai_job,
+            job_id,
         )
 
         return {
             "success": True,
+            "message": "AI analysis job created",
+            "job_id": job_id,
+            "status": "PENDING",
             "question": request.question,
-            "answer": answer,
         }
 
     except ValueError as error:
@@ -44,5 +55,28 @@ async def analyze(request: AnalyzeRequest):
     except Exception:
         return {
             "success": False,
-            "message": "AI analysis failed. Please try again later.",
+            "message": "Unable to create AI analysis job.",
+        }
+
+
+@router.get("/jobs/{job_id}")
+async def get_ai_job(job_id: str):
+    try:
+        job = get_job(job_id)
+
+        if not job:
+            return {
+                "success": False,
+                "message": "AI job not found",
+            }
+
+        return {
+            "success": True,
+            "job": job,
+        }
+
+    except Exception:
+        return {
+            "success": False,
+            "message": "Unable to retrieve AI job.",
         }
