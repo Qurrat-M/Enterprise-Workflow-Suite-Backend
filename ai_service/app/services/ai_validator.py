@@ -41,3 +41,17 @@ def validate_department_answer(answer: str, departments: list[dict]) -> str:
                     )
 
     return answer
+
+def validate_question(question: str) -> str:
+    if not question:
+        raise ValueError("Question is required")
+
+    question = question.strip()
+
+    if not question:
+        raise ValueError("Question cannot be empty")
+
+    if len(question) > 2000:
+        raise ValueError("Question is too long")
+
+    return question
