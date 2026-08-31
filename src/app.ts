@@ -16,6 +16,7 @@ import organizationRoutes from "./modules/organizations/organization.routes";
 import userRoutes from "./modules/users/user.routes";
 import departmentRoutes from "./modules/department/department.routes";
 import budgetRoutes from "./modules/budgets/budget.routes";
+import assetRoutes from "./modules/assets/asset.routes";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/v1/users", userRoleRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
 app.use("/api/v1/departments", departmentRoutes);
 app.use("/api/v1/budgets", budgetRoutes);
+app.use("/api/v1/assets", assetRoutes);
 
 app.use(notFound);
 
