@@ -41,19 +41,24 @@ export const authenticate = async (
       email: string;
     };
 
+    /**
+     * Get user's active organization membership
+     */
     const { rows } = await db.query(
       `
-  SELECT organization_id
-  FROM organization_users
-  WHERE user_id = $1
-    AND status = 'ACTIVE'
-  ORDER BY joined_at
-  LIMIT 1;
-  `,
+      SELECT
+        organization_id,
+        user_id,
+        status
+      FROM organization_users
+      WHERE user_id = $1
+        AND LOWER(status) = 'active'
+      ORDER BY joined_at
+      LIMIT 1;
+      `,
       [decoded.id],
     );
 
-    // TEMPORARY DEBUG LOGS
     console.log("AUTH USER ID:", decoded.id);
     console.log("AUTH EMAIL:", decoded.email);
     console.log("ORG MEMBERSHIP:", rows);
@@ -68,7 +73,8 @@ export const authenticate = async (
     }
 
     req.user = {
-      ...decoded,
+      id: decoded.id,
+      email: decoded.email,
       organizationId: rows[0].organization_id,
     };
 
@@ -77,7 +83,10 @@ export const authenticate = async (
     console.error("AUTH ERROR:", error);
 
     return next(
-      new ApiError(HTTP_STATUS.UNAUTHORIZED, "Invalid or expired token"),
+      new ApiError(
+        HTTP_STATUS.UNAUTHORIZED,
+        "Invalid or expired token",
+      ),
     );
   }
 };

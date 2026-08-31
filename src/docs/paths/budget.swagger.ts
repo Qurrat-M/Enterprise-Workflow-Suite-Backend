@@ -33,7 +33,6 @@
  *             - pending
  *             - approved
  *             - rejected
- *             - closed
  *           example: draft
  *         created_at:
  *           type: string
