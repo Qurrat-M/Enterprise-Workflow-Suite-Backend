@@ -5,7 +5,6 @@ import budgetRepository from "./budget.repository";
 
 import {
   BudgetQuery,
-  BudgetStatus,
   CreateBudgetInput,
   UpdateBudgetInput,
 } from "./budget.types";
@@ -29,11 +28,7 @@ class BudgetService {
     return budget;
   }
 
-  async update(
-    id: string,
-    organizationId: string,
-    data: UpdateBudgetInput,
-  ) {
+  async update(id: string, organizationId: string, data: UpdateBudgetInput) {
     const budget = await this.getById(id, organizationId);
 
     if (budget.status !== "draft") {
@@ -74,11 +69,7 @@ class BudgetService {
       );
     }
 
-    return budgetRepository.updateStatus(
-      id,
-      organizationId,
-      "pending",
-    );
+    return budgetRepository.updateStatus(id, organizationId, "pending");
   }
 
   /**
@@ -96,11 +87,7 @@ class BudgetService {
       );
     }
 
-    return budgetRepository.updateStatus(
-      id,
-      organizationId,
-      "approved",
-    );
+    return budgetRepository.updateStatus(id, organizationId, "approved");
   }
 
   /**
@@ -118,11 +105,7 @@ class BudgetService {
       );
     }
 
-    return budgetRepository.updateStatus(
-      id,
-      organizationId,
-      "rejected",
-    );
+    return budgetRepository.updateStatus(id, organizationId, "rejected");
   }
 
   /**
@@ -140,11 +123,7 @@ class BudgetService {
       );
     }
 
-    return budgetRepository.updateStatus(
-      id,
-      organizationId,
-      "pending",
-    );
+    return budgetRepository.updateStatus(id, organizationId, "pending");
   }
 }
 
