@@ -61,6 +61,25 @@ class OrganizationRepository {
     return result.rows[0];
   }
 
+  async addUserToOrganization(
+    organizationId: string,
+    userId: string,
+  ) {
+    await db.query(
+      `
+    INSERT INTO organization_users (
+      organization_id,
+      user_id,
+      status
+    )
+    VALUES ($1, $2, 'active')
+    ON CONFLICT (organization_id, user_id)
+    DO NOTHING;
+    `,
+      [organizationId, userId],
+    );
+  }
+
   /**
    * Find organization by code
    */

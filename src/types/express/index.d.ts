@@ -6,10 +6,10 @@ declare global {
       user: JwtPayload & {
         id: string;
         email: string;
-        organizationId: string;
+        organizationId?: string;
       };
     }
   }
 }
 
-export {};
+export { };

@@ -14,7 +14,10 @@ class OrganizationService {
   /**
    * Create organization
    */
-  async createOrganization(data: CreateOrganizationInput) {
+  async createOrganization(
+    data: CreateOrganizationInput,
+    userId: string,
+  ) {
     const existing = await organizationRepository.findByCode(data.code);
 
     if (existing) {
@@ -24,7 +27,14 @@ class OrganizationService {
       );
     }
 
-    return organizationRepository.create(data);
+    const organization = await organizationRepository.create(data);
+
+    await organizationRepository.addUserToOrganization(
+      organization.id,
+      userId,
+    );
+
+    return organization;
   }
 
   /**

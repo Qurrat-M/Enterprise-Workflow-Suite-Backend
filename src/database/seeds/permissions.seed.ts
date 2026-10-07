@@ -30,6 +30,74 @@ const permissions = [
   },
 
   // ===========================
+  // ORGANIZATION
+  // ===========================
+  {
+    module: "organization",
+    action: "create",
+    name: "organization.create",
+    display_name: "Create Organization",
+  },
+  {
+    module: "organization",
+    action: "read",
+    name: "organization.read",
+    display_name: "View Organizations",
+  },
+  {
+    module: "organization",
+    action: "update",
+    name: "organization.update",
+    display_name: "Update Organization",
+  },
+  {
+    module: "organization",
+    action: "delete",
+    name: "organization.delete",
+    display_name: "Delete Organization",
+  },
+  {
+    module: "organization",
+    action: "status.update",
+    name: "organization.status.update",
+    display_name: "Update Organization Status",
+  },
+
+  // ===========================
+  // DEPARTMENT
+  // ===========================
+  {
+    module: "department",
+    action: "create",
+    name: "department.create",
+    display_name: "Create Department",
+  },
+  {
+    module: "department",
+    action: "read",
+    name: "department.read",
+    display_name: "View Departments",
+  },
+  {
+    module: "department",
+    action: "update",
+    name: "department.update",
+    display_name: "Update Department",
+  },
+  {
+    module: "department",
+    action: "delete",
+    name: "department.delete",
+    display_name: "Delete Department",
+  },
+  {
+    module: "department",
+    action: "status.update",
+    name: "department.status.update",
+    display_name: "Update Department Status",
+  },
+
+  // ===========================
   // ROLE
   // ===========================
   {

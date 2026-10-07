@@ -8,7 +8,10 @@ export const createOrganization = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const organization = await organizationService.createOrganization(req.body);
+    const organization = await organizationService.createOrganization(
+      req.body,
+      req.user.id,
+    );
 
     res.status(201).json({
       success: true,

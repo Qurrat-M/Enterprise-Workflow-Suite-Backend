@@ -63,19 +63,10 @@ export const authenticate = async (
     console.log("AUTH EMAIL:", decoded.email);
     console.log("ORG MEMBERSHIP:", rows);
 
-    if (!rows.length) {
-      return next(
-        new ApiError(
-          HTTP_STATUS.FORBIDDEN,
-          "User is not a member of any organization",
-        ),
-      );
-    }
-
     req.user = {
       id: decoded.id,
       email: decoded.email,
-      organizationId: rows[0].organization_id,
+      organizationId: rows.length ? rows[0].organization_id : undefined,
     };
 
     next();
