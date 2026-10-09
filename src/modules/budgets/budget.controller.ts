@@ -6,20 +6,23 @@ import { ApiResponse } from "../../utils/ApiResponse";
 
 import budgetService from "./budget.service";
 
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    organizationId: string;
-    email: string;
-  };
-}
 
 class BudgetController {
   getBudgets = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await budgetService.getAll(
-      request.user.organizationId,
+      organizationId,
       req.query,
     );
 
@@ -29,11 +32,20 @@ class BudgetController {
   });
 
   getBudgetById = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
 
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
     const data = await budgetService.getById(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -42,10 +54,20 @@ class BudgetController {
   });
 
   createBudget = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await budgetService.create(
-      request.user.organizationId,
+      organizationId,
       req.body,
     );
 
@@ -55,11 +77,21 @@ class BudgetController {
   });
 
   updateBudget = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await budgetService.update(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.body,
     );
 
@@ -69,11 +101,21 @@ class BudgetController {
   });
 
   deleteBudget = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     await budgetService.delete(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -85,11 +127,21 @@ class BudgetController {
    * Submit budget
    */
   submitBudget = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await budgetService.submit(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -101,11 +153,21 @@ class BudgetController {
    * Approve budget
    */
   approveBudget = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await budgetService.approve(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -117,11 +179,21 @@ class BudgetController {
    * Reject budget
    */
   rejectBudget = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await budgetService.reject(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -133,11 +205,21 @@ class BudgetController {
    * Return budget
    */
   returnBudget = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await budgetService.returnBudget(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res

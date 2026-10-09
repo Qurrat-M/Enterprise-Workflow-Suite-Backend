@@ -6,23 +6,25 @@ import { ApiResponse } from "../../utils/ApiResponse";
 
 import workflowService from "./workflow.service";
 
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    organizationId: string;
-    email: string;
-  };
-}
-
 class WorkflowController {
   /**
    * Get all workflows
    */
   getWorkflows = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.getAll(
-      request.user.organizationId,
+      organizationId,
       req.query,
     );
 
@@ -35,11 +37,21 @@ class WorkflowController {
    * Get workflow by ID
    */
   getWorkflowById = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.getById(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -51,10 +63,20 @@ class WorkflowController {
    * Create workflow
    */
   createWorkflow = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.create(
-      request.user.organizationId,
+      organizationId,
       req.body,
     );
 
@@ -67,11 +89,21 @@ class WorkflowController {
    * Update workflow
    */
   updateWorkflow = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.update(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.body,
     );
 
@@ -84,9 +116,22 @@ class WorkflowController {
    * Delete workflow
    */
   deleteWorkflow = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
 
-    await workflowService.delete(req.params.id, request.user.organizationId);
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
+
+    await workflowService.delete(
+      req.params.id,
+      organizationId,
+    );
 
     res
       .status(HTTP_STATUS.OK)
@@ -97,11 +142,21 @@ class WorkflowController {
    * Activate workflow
    */
   activateWorkflow = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.activate(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -113,11 +168,21 @@ class WorkflowController {
    * Deactivate workflow
    */
   deactivateWorkflow = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.deactivate(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -133,11 +198,21 @@ class WorkflowController {
    * Get workflow steps
    */
   getWorkflowSteps = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.getSteps(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -149,11 +224,21 @@ class WorkflowController {
    * Create workflow step
    */
   createWorkflowStep = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.createStep(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.body,
     );
 
@@ -166,11 +251,21 @@ class WorkflowController {
    * Update workflow step
    */
   updateWorkflowStep = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await workflowService.updateStep(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.params.stepId,
       req.body,
     );
@@ -184,11 +279,21 @@ class WorkflowController {
    * Delete workflow step
    */
   deleteWorkflowStep = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     await workflowService.deleteStep(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.params.stepId,
     );
 

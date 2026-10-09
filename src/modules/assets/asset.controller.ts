@@ -6,20 +6,22 @@ import { ApiResponse } from "../../utils/ApiResponse";
 
 import assetService from "./asset.service";
 
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    organizationId: string;
-    email: string;
-  };
-}
-
 class AssetController {
   getAssets = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.getAll(
-      request.user.organizationId,
+      organizationId,
       req.query,
     );
 
@@ -29,11 +31,21 @@ class AssetController {
   });
 
   getAssetById = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.getById(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -42,10 +54,20 @@ class AssetController {
   });
 
   createAsset = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.create(
-      request.user.organizationId,
+      organizationId,
       req.body,
     );
 
@@ -55,11 +77,21 @@ class AssetController {
   });
 
   updateAsset = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.update(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.body,
     );
 
@@ -69,9 +101,19 @@ class AssetController {
   });
 
   deleteAsset = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
 
-    await assetService.delete(req.params.id, request.user.organizationId);
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
+
+    await assetService.delete(req.params.id, organizationId);
 
     res
       .status(HTTP_STATUS.OK)
@@ -79,11 +121,21 @@ class AssetController {
   });
 
   assignAsset = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.assign(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.body.userId,
     );
 
@@ -93,11 +145,21 @@ class AssetController {
   });
 
   returnAsset = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.returnAsset(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res
@@ -106,11 +168,21 @@ class AssetController {
   });
 
   transferAsset = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.transfer(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
       req.body.userId,
     );
 
@@ -120,11 +192,21 @@ class AssetController {
   });
 
   disposeAsset = asyncHandler(async (req: Request, res: Response) => {
-    const request = req as AuthenticatedRequest;
+    const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json(
+        new ApiResponse(
+          false,
+          "User is not associated with an organization",
+        ),
+      );
+      return;
+    }
 
     const data = await assetService.dispose(
       req.params.id,
-      request.user.organizationId,
+      organizationId,
     );
 
     res

@@ -7,6 +7,13 @@ export const createDepartment = async (
 ): Promise<void> => {
   try {
     const organizationId = req.user.organizationId;
+    if (!organizationId) {
+      res.status(400).json({
+        success: false,
+        message: "User is not associated with an organization",
+      });
+      return;
+    }
 
     const department = await departmentService.createDepartment({
       ...req.body,
@@ -44,6 +51,14 @@ export const getDepartments = async (
   try {
     const organizationId = req.user.organizationId;
 
+    if (!organizationId) {
+      res.status(400).json({
+        success: false,
+        message: "User is not associated with an organization",
+      });
+      return;
+    }
+
     const departments = await departmentService.getDepartments(
       organizationId,
       req.query,
@@ -71,6 +86,14 @@ export const getDepartmentById = async (
 ): Promise<void> => {
   try {
     const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(400).json({
+        success: false,
+        message: "User is not associated with an organization",
+      });
+      return;
+    }
 
     const department = await departmentService.getDepartmentById(
       organizationId,
@@ -107,6 +130,14 @@ export const updateDepartment = async (
 ): Promise<void> => {
   try {
     const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(400).json({
+        success: false,
+        message: "User is not associated with an organization",
+      });
+      return;
+    }
 
     const department = await departmentService.updateDepartment(
       organizationId,
@@ -153,6 +184,14 @@ export const updateDepartmentStatus = async (
   try {
     const organizationId = req.user.organizationId;
 
+    if (!organizationId) {
+      res.status(400).json({
+        success: false,
+        message: "User is not associated with an organization",
+      });
+      return;
+    }
+
     const department = await departmentService.updateDepartmentStatus(
       organizationId,
       req.params.id,
@@ -191,6 +230,14 @@ export const deleteDepartment = async (
 ): Promise<void> => {
   try {
     const organizationId = req.user.organizationId;
+
+    if (!organizationId) {
+      res.status(400).json({
+        success: false,
+        message: "User is not associated with an organization",
+      });
+      return;
+    }
 
     await departmentService.deleteDepartment(organizationId, req.params.id);
 
